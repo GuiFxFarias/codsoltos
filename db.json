@@ -1,0 +1,60 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "product": "bola de volei",
+      "category": "Esportes",
+      "price": "100",
+      "description": " Bola de futebol para campo"
+    },
+    {
+      "id": "2",
+      "product": "Camiseta para treino",
+      "category": "Esportes",
+      "price": "49",
+      "description": "Camiseta para treinos diversos"
+    },
+    {
+      "id": "3",
+      "product": "Blazer azul",
+      "category": "Esporte fino",
+      "price": "249",
+      "description": "Blazer para festa, tipo esporte fino"
+    },
+    {
+      "id": "4",
+      "product": "Camisa preta",
+      "category": "Esporte fino",
+      "price": "129",
+      "description": "Camisa social esporte fino"
+    },
+    {
+      "id": "5",
+      "product": "Camisa preta oversized",
+      "category": "Camisetas",
+      "price": "110",
+      "description": "Camisa preta oversized para treinos de musculação e festas"
+    },
+    {
+      "id": "6",
+      "product": "Camiseta branca oversized",
+      "category": "Camisetas",
+      "price": "110",
+      "description": "Camisa branca oversized para treinos de musculação e festas"
+    },
+    {
+      "id": "7",
+      "product": "Camiseta beje oversized",
+      "category": "Camisetas",
+      "price": "110",
+      "description": "Camisa beje oversized para treinos de musculação e festas"
+    },
+    {
+      "id": "8",
+      "product": "Camiseta azul oversized",
+      "category": "Camisetas",
+      "price": "110",
+      "description": "Camisa azul oversized para treinos de musculação e festas"
+    }
+  ]
+}
