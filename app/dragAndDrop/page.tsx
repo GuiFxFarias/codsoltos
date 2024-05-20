@@ -5,8 +5,9 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getProducts } from "./api/getProducts";
 import { potsProducts } from "./api/postProducts";
 import { v4 as uuidv4 } from "uuid";
+import { ArrowDownFromLine, ArrowsUpFromLine } from "lucide-react";
 import { Task } from "./itemDrag";
-import { z } from "zod";
+import { boolean, string, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -34,12 +35,6 @@ const formSchema = z.object({
     .min(2)
     .max(50, { message: "Escreva corretamente" }),
 });
-
-interface IProduct {
-  id: string;
-  product: string;
-  index: number;
-}
 
 export default function DragAndDrop() {
   const { data } = useQuery({ queryKey: "getProducts", queryFn: getProducts });
@@ -81,38 +76,37 @@ export default function DragAndDrop() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    postMutation.mutate({
-      id: uuidv4(),
-      product: values.product,
-    });
+    let positionIndex = 0;
+    data.map((item, index) => {
+      if (data.length == 0) {
+        positionIndex = 0;
+      } else {
+        positionIndex = index + 1;
+      }
+
+      return positionIndex;
+    }),
+      postMutation.mutate({
+        id: uuidv4(),
+        index: positionIndex,
+        product: values.product,
+      });
   }
-
-  // function reorder(list: any, startIndex: number, endIndex: number) {
-  //   const result = Array.from(list);
-  //   const [removed] = result.splice(startIndex, 1);
-  //   result.splice(endIndex, 0, removed);
-
-  //   return result;
-  // }
 
   function onDragEnd(result: any) {
     const resultArray = Array.from(data);
     if (!result.destination) {
       return;
     }
-
     const [removed] = resultArray.splice(result.source.index, 1);
     resultArray.splice(result.destination.index, 0, removed);
-
     resultArray.map((dataArray: unknown, index) => {
       dataArray.index = index;
-
       let valuePut = {
         id: dataArray.id,
         index: index,
         product: dataArray.product,
       };
-
       updateProducts.mutate({ slug: valuePut });
     });
   }
@@ -157,9 +151,14 @@ export default function DragAndDrop() {
             {(provided) => (
               <article ref={provided.innerRef} {...provided.droppableProps}>
                 {data
-                  .sort((a, b) => a.index - b.index)
+                  ?.sort((a, b) => a.index - b.index)
                   ?.map((task: any, index: number) => (
-                    <Task key={task.id} task={task} index={index} />
+                    <div
+                      key={index}
+                      className="flex justify-between items-center mt-1"
+                    >
+                      <Task task={task} index={index} key={task.id} />
+                    </div>
                   ))}
 
                 {provided.placeholder}
