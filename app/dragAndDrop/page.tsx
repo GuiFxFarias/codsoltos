@@ -1,13 +1,12 @@
 "use client";
 
-import { DragEvent, FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getProducts } from "./api/getProducts";
-import { potsProducts } from "./api/postProducts";
+import { postParticipantes, potsProducts } from "./api/postProducts";
 import { v4 as uuidv4 } from "uuid";
-import { ArrowDownFromLine, ArrowsUpFromLine } from "lucide-react";
-import { Task } from "./itemDrag";
-import { boolean, string, z } from "zod";
+import { Group, Ungroup } from "lucide-react";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -16,18 +15,24 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   DragDropContext,
-  DragDropContextProps,
+  Draggable,
+  DropResult,
   Droppable,
 } from "@hello-pangea/dnd";
 import { putProducts } from "./api/putProducts";
 import { delProducts } from "./api/delProducts";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const formSchema = z.object({
   product: z
@@ -39,6 +44,7 @@ const formSchema = z.object({
 export default function DragAndDrop() {
   const { data } = useQuery({ queryKey: "getProducts", queryFn: getProducts });
 
+  const [valueProduct, setValueProduct] = useState<string>();
   const [newItems, setNewItems] = useState(data);
 
   useEffect(() => {
@@ -61,15 +67,23 @@ export default function DragAndDrop() {
     },
   });
 
+  const mutateParticipantes = useMutation({
+    mutationFn: (data: { body: any; value: any; id: string }) =>
+      postParticipantes(data.body, data.value, data.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["getProducts"] });
+    },
+  });
+
   const updateProducts = useMutation({
-    mutationFn: (data: { slug: unknown }) => putProducts(data.slug),
+    mutationFn: (data: { slug: any }) => putProducts(data.slug),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: "getProducts" });
     },
   });
 
   const deleteProducts = useMutation({
-    mutationFn: delProducts,
+    mutationFn: (id: string) => delProducts(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: "getProducts" });
     },
@@ -77,7 +91,7 @@ export default function DragAndDrop() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     let positionIndex = 0;
-    data.map((item, index) => {
+    data.map((item: any, index: any) => {
       if (data.length == 0) {
         positionIndex = 0;
       } else {
@@ -90,6 +104,8 @@ export default function DragAndDrop() {
         id: uuidv4(),
         index: positionIndex,
         product: values.product,
+        donoDoGrupo: false,
+        participantesDoGrupo: [],
       });
   }
 
@@ -98,14 +114,99 @@ export default function DragAndDrop() {
     if (!result.destination) {
       return;
     }
-    const [removed] = resultArray.splice(result.source.index, 1);
+    const [removed]: any = resultArray.splice(result.source.index, 1);
     resultArray.splice(result.destination.index, 0, removed);
-    resultArray.map((dataArray: unknown, index) => {
-      dataArray.index = index;
+    resultArray.map((dataArray: any, index: number) => {
+      let valuePost = {};
+      if (result.destination.index == dataArray.index) {
+        if (dataArray.donoDoGrupo == true) {
+          //Dentro do grupo
+          dataArray.participantesDoGrupo.map((item: any, index: number) => {
+            valuePost = {
+              id: removed.id,
+              index: index,
+              product: removed.product,
+              donoDoGrupo: false,
+              participantesDoGrupo: removed.participantesDoGrupo,
+            };
+          });
+          mutateParticipantes.mutate({
+            value: valuePost,
+            body: dataArray,
+            id: dataArray.id,
+          });
+          deleteProducts.mutate(removed.id);
+        }
+      }
+
       let valuePut = {
         id: dataArray.id,
         index: index,
         product: dataArray.product,
+        donoDoGrupo: dataArray.donoDoGrupo,
+        participantesDoGrupo: dataArray.participantesDoGrupo,
+      };
+      updateProducts.mutate({ slug: valuePut });
+    });
+  }
+
+  function onDragEndLevelTwo(result: any, participantes: any[]) {
+    const resultArrayTwoLevel = Array.from(participantes);
+    if (!result.destination) {
+      return;
+    }
+    const [removedTwoLevel]: any = resultArrayTwoLevel.splice(
+      result.source.index,
+      1
+    );
+    resultArrayTwoLevel.splice(result.destination.index, 0, removedTwoLevel);
+
+    resultArrayTwoLevel.map((dataArray: any, index: number) => {
+      // let valuePost = {};
+      // if (result.destination.index == dataArray.index) {
+      //   if (dataArray.donoDoGrupo == true) {
+      //     //Dentro do grupo
+      //     dataArray.participantesDoGrupo.map((item: any, index: number) => {
+      //       valuePost = {
+      //         id: removed.id,
+      //         index: index,
+      //         product: removed.product,
+      //         donoDoGrupo: false,
+      //         participantesDoGrupo: removed.participantesDoGrupo,
+      //       };
+      //     });
+      //     mutateParticipantes.mutate({
+      //       value: valuePost,
+      //       body: dataArray,
+      //       id: dataArray.id,
+      //     });
+      //     deleteProducts.mutate(removed.id);
+      //   }
+      // }
+
+      let valuePut = {
+        id: dataArray.id,
+        index: index,
+        product: dataArray.product,
+        donoDoGrupo: dataArray.donoDoGrupo,
+        participantesDoGrupo: dataArray.participantesDoGrupo,
+      };
+      mutateParticipantes.mutate({
+        value: valuePut,
+        body: dataArray,
+        id: dataArray.id,
+      });
+    });
+  }
+
+  function createGroup(task: any) {
+    data.map((dataArray: any, index: number) => {
+      let valuePut = {
+        id: task.id,
+        index: task.index,
+        product: task.product,
+        donoDoGrupo: !task.donoDoGrupo,
+        participantesDoGrupo: task.participantesDoGrupo,
       };
       updateProducts.mutate({ slug: valuePut });
     });
@@ -151,14 +252,119 @@ export default function DragAndDrop() {
             {(provided) => (
               <article ref={provided.innerRef} {...provided.droppableProps}>
                 {data
-                  ?.sort((a, b) => a.index - b.index)
+                  ?.sort((a: any, b: any) => a.index - b.index)
                   ?.map((task: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center mt-1"
-                    >
-                      <Task task={task} index={index} key={task.id} />
-                    </div>
+                    <>
+                      {task.donoDoGrupo ? (
+                        <Accordion type="single" collapsible>
+                          <AccordionItem value="item-1">
+                            <AccordionTrigger>
+                              <div className="flex">
+                                {task.product}
+                                {task.donoDoGrupo ? (
+                                  <Ungroup
+                                    size={30}
+                                    className="hover:bg-zinc-500 transition-all rounded p-1 cursor-pointer"
+                                    onClick={() => createGroup(task)}
+                                  />
+                                ) : (
+                                  <Group
+                                    size={30}
+                                    className="hover:bg-zinc-500 transition-all rounded p-1 cursor-pointer"
+                                    onClick={() => createGroup(task)}
+                                  />
+                                )}
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <DragDropContext
+                                onDragEnd={(e: DropResult) =>
+                                  onDragEndLevelTwo(
+                                    e,
+                                    task.participantesDoGrupo
+                                  )
+                                }
+                              >
+                                <Droppable droppableId="tasksTwo" type="list">
+                                  {(provided) => (
+                                    <article
+                                      ref={provided.innerRef}
+                                      {...provided.droppableProps}
+                                    >
+                                      {task.participantesDoGrupo.length == 0 ? (
+                                        "Sem participantes ainda..."
+                                      ) : (
+                                        <>
+                                          {task.participantesDoGrupo.map(
+                                            (item, index) => {
+                                              return (
+                                                <>
+                                                  <Draggable
+                                                    draggableId={item.id}
+                                                    index={index}
+                                                    key={item.id}
+                                                  >
+                                                    {(provided) => (
+                                                      <p
+                                                        className="mt-1 bg-zinc-200 p-1 rounded"
+                                                        {...provided.draggableProps}
+                                                        {...provided.dragHandleProps}
+                                                        ref={provided.innerRef}
+                                                      >
+                                                        {item.product}
+                                                      </p>
+                                                    )}
+                                                  </Draggable>
+                                                </>
+                                              );
+                                            }
+                                          )}
+                                        </>
+                                      )}
+                                      {provided.placeholder}
+                                    </article>
+                                  )}
+                                </Droppable>
+                              </DragDropContext>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      ) : (
+                        <Draggable
+                          draggableId={task.id}
+                          index={index}
+                          key={task.id}
+                        >
+                          {(provided) => (
+                            <div
+                              className={
+                                task.donoDoGrupo == true
+                                  ? "w-full bg-zinc-400 mb-2 last:mb-0 px-2 py-3 rounded flex justify-between "
+                                  : "w-full bg-zinc-300 mb-2 last:mb-0 px-2 py-3 rounded flex justify-between "
+                              }
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              ref={provided.innerRef}
+                            >
+                              <p className="font-medium">{task.product}</p>
+                              {task.donoDoGrupo ? (
+                                <Ungroup
+                                  size={30}
+                                  className="hover:bg-zinc-500 transition-all rounded p-1 cursor-pointer"
+                                  onClick={() => createGroup(task)}
+                                />
+                              ) : (
+                                <Group
+                                  size={30}
+                                  className="hover:bg-zinc-500 transition-all rounded p-1 cursor-pointer"
+                                  onClick={() => createGroup(task)}
+                                />
+                              )}
+                            </div>
+                          )}
+                        </Draggable>
+                      )}
+                    </>
                   ))}
 
                 {provided.placeholder}
