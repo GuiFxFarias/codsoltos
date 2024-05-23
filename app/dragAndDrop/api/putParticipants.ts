@@ -1,11 +1,11 @@
-export async function putProducts(valuePut: {
+export async function putParticipantes(valuePut: {
   id: string;
   index: number;
   product: string;
   donoDeGrupo: boolean;
   idSeuDono: null;
 }) {
-  const url = `http://localhost:3333/products/${valuePut.id}`;
+  const url = `http://localhost:3333/participantesDoGrupo/${valuePut.id}`;
 
   const request = await fetch(url, {
     method: "PUT",
