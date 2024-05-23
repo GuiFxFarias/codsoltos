@@ -166,8 +166,8 @@ export default function DragAndDrop() {
               idSeuDono: dataArray.id,
             };
           });
-          // deleteProducts.mutate(removed.id);
-          // postMutationParticipantes.mutate(valuePost);
+          postMutationParticipantes.mutate(valuePost);
+          deleteProducts.mutate(removed.id);
         }
       }
 
@@ -332,7 +332,6 @@ export default function DragAndDrop() {
                                       >
                                         {(providedTwo) => (
                                           <article
-                                            className="z-50"
                                             ref={providedTwo.innerRef}
                                             {...providedTwo.droppableProps}
                                           >
