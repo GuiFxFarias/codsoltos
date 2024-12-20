@@ -272,7 +272,7 @@ export default function DragAndDrop() {
           </Button>
         </form>
       </Form>
-      <section className="bg-zinc-100 p-3 rounded-md w-full max-w-2xl">
+      <section className="bg-zinc-100 p-3 rounded-md w-full max-w-2xl"> 
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="tasks" type="list">
             {(provided) => (

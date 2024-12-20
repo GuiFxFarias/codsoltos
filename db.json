@@ -1,14 +1,22 @@
 {
-  "products": [
+  "users": [
     {
-      "id": "b9018cd8-34cb-4b27-a40f-3853bad95ec8",
-      "index": 0,
-      "product": "Coca"
+      "id": 1,
+      "name": "Admin",
+      "email": "admin@example.com",
+      "password": "123456"
     },
     {
-      "id": "5daafa93-4330-4ffc-9b15-ec36a80ce3bb",
-      "index": 1,
-      "product": "Coca Zero"
+      "name": "Miudin",
+      "email": "miudim@miudo.com",
+      "password": "miudo123",
+      "id": 2
+    }
+  ],
+  "tokens": [
+    {
+      "id": 1,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTczMzg2MzcyNiwiZXhwIjoxNzMzODY3MzI2fQ.5_-0s6zfh8wmD5ktWhQtL9_3sBrPLqnkh5P6_2M-ZcY"
     }
   ]
 }
